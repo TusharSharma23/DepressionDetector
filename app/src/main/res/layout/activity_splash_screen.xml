@@ -27,7 +27,7 @@
         android:fontFamily="@font/bangers"
         android:text="@string/app_name"
         android:textSize="40sp"
-        android:textColor="@color/textColor"
+        android:textColor="@color/textColorSplash"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/logo" />
