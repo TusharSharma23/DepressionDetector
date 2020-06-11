@@ -3,4 +3,8 @@
     <string name="logo">Logo</string>
     <string name="help">Help</string>
     <string name="menuicon">menuIcon</string>
+    <string name="overall_score">Click here to get your Overall Depression Score</string>
+    <string name="depression_score_daily">Depression Score Daily</string>
+    <string name="stop_activity_recording">Click here to stop recording your activity.</string>
+    <string name="start_activity_recording">Click here to start recording your activity.</string>
 </resources>

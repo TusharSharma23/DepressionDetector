@@ -1,6 +1,4 @@
-package com.sharmatushar.depressiondetector;
-
-import androidx.appcompat.app.AppCompatActivity;
+package com.sharmatushar.depressiondetector.Activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +10,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.sharmatushar.depressiondetector.R;
 
 import java.util.Objects;
 import java.util.UUID;
