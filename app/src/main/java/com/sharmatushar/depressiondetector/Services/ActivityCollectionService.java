@@ -32,7 +32,7 @@ import java.util.Objects;
 import static com.sharmatushar.depressiondetector.App.CHANNEL_ID;
 
 public class ActivityCollectionService extends Service implements SensorEventListener {
-    private static final int COLLECTION_TIME = 5;
+    private static final int COLLECTION_TIME = 60;
 
     public ActivityCollectionService() {
     }
@@ -170,7 +170,7 @@ public class ActivityCollectionService extends Service implements SensorEventLis
                     ArrayList<UserData> uploadData = new ArrayList<>(sensorData);
                     sensorData.clear();
                     saveCSVFile(date, uploadData);
-                    //TODO save to csv and upload data
+                    //COMPLETED save to csv and upload data
                 }
             }
         }).start();
@@ -206,7 +206,7 @@ public class ActivityCollectionService extends Service implements SensorEventLis
                     outputStream.write("\n");
                 }
                 outputStream.close();
-                //TODO upload and delete csv here
+                //TODO upload and delete csv here, create a job request
             } catch (IOException e) {
                 e.printStackTrace();
             }
