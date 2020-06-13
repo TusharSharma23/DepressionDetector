@@ -49,15 +49,15 @@
                 android:id="@+id/progressbar_today"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                />
+                android:visibility="gone"/>
             <ImageView
                 android:id="@+id/score_depict"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                tools:src="@drawable/ic_mind_mapping"
+                android:layout_width="130dp"
+                android:layout_height="130dp"
+                tools:src="@drawable/ic_depression"
                 android:layout_gravity="center"
                 android:contentDescription="@string/depression_score_daily"
-                android:visibility="gone"/>
+                />
         </androidx.appcompat.widget.LinearLayoutCompat>
     </RelativeLayout>
 
