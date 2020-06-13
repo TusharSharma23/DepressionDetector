@@ -32,7 +32,7 @@ import static com.sharmatushar.depressiondetector.Constants.PreferenceKeys.LOGIN
 
 public class SplashScreen extends AppCompatActivity {
 
-    private static final String TAG = "SplashScreen";
+    private final String TAG = "SplashScreen";
     private SharedPreferences sharedPreferences;
     private long currTime;
 
@@ -88,7 +88,7 @@ public class SplashScreen extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            Log.d(TAG, "Got response: " + response);
+                            Log.d(TAG, "Got response: " + response.toString());
 
                             String userId = response.getString("user_id");
                             sharedPreferences.edit().putString(LOGIN_ID, userId).apply();

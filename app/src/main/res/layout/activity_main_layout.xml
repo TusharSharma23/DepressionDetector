@@ -2,44 +2,40 @@
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_margin="16dp"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/time_display"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.35"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/depression_layout"
-        android:gravity="center"
-        android:fontFamily="@font/bangers"
-        android:textColor="@color/textColor"
-        android:text="@string/stop_activity_recording"
-        android:textSize="@dimen/text_size"/>
 
     <RelativeLayout
-        android:id="@+id/depression_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.35">
+        <TextView
+            android:id="@+id/time_display"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:fontFamily="@font/bangers"
+            android:textColor="@color/textColor"
+            android:text="@string/stop_activity_recording"
+            android:textSize="@dimen/text_size"
+            android:layout_centerInParent="true"/>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/depression_today_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.2"
-        app:layout_constraintTop_toBottomOf="@id/time_display"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/overall_depression_score"
         android:orientation="vertical"
         android:background="@drawable/dotted_outline">
-
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="200dp"
             android:orientation="vertical"
             android:layout_centerInParent="true">
-
             <TextView
                 android:id="@+id/depression_score"
                 android:layout_width="match_parent"
@@ -48,34 +44,46 @@
                 android:textColor="@color/textColor"
                 android:gravity="center"
                 android:textSize="@dimen/text_size"
-                tools:text="According to our suggestion, you are \n non depressed"/>
-
+                android:text="@string/initial_message"/>
+            <ProgressBar
+                android:id="@+id/progressbar_today"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
             <ImageView
                 android:id="@+id/score_depict"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 tools:src="@drawable/ic_mind_mapping"
                 android:layout_gravity="center"
-                android:contentDescription="@string/depression_score_daily" />
+                android:contentDescription="@string/depression_score_daily"
+                android:visibility="gone"/>
         </androidx.appcompat.widget.LinearLayoutCompat>
-
     </RelativeLayout>
 
-    <TextView
-        android:id="@+id/overall_depression_score"
+
+    <RelativeLayout
+        android:id="@+id/overall_score_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.35"
-        app:layout_constraintTop_toBottomOf="@id/time_display"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:text="@string/overall_score"
-        android:fontFamily="@font/bangers"
-        android:textColor="@color/textColor"
-        android:textSize="@dimen/text_size"
-        android:gravity="center"/>
-
+        android:orientation="vertical"
+        android:layout_weight="0.35">
+        <TextView
+            android:id="@+id/overall_depression_score"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/overall_score"
+            android:fontFamily="@font/bangers"
+            android:textColor="@color/textColor"
+            android:textSize="@dimen/text_size"
+            android:layout_centerInParent="true"
+            android:gravity="center"/>
+        <ProgressBar
+            android:id="@+id/progressbar_last_week"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/overall_depression_score"/>
+    </RelativeLayout>
 
 
 </androidx.appcompat.widget.LinearLayoutCompat>

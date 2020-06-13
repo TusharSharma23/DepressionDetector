@@ -7,4 +7,11 @@
     <string name="depression_score_daily">Depression Score Daily</string>
     <string name="stop_activity_recording">Click here to stop recording your activity.</string>
     <string name="start_activity_recording">Click here to start recording your activity.</string>
+    <string name="initial_message">Fetching your Depression state</string>
+    <string name="non_depression_text_daily">According to your activity\nYou are not depressed</string>
+    <string name="depression_text_daily">According to your activity\nYou are depressed</string>
+    <string name="error_depression_score">Unable to fetch your score\n click here to try again.</string>
+    <string name="error_depression_score_weekly">Unable to fetch your weekly score\n click here to try again.</string>
+    <string name="no_depression_score">Your daily score is not available.\nStart recording your activity\nNow</string>
+    <string name="no_depression_score_weekly">Your weekly score is not available.\nStart recording your activity\nNow</string>
 </resources>
