@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_margin="16dp"
     android:orientation="vertical">
 
@@ -38,23 +39,24 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_centerInParent="true">
-        <TextView
-            android:id="@+id/depression_score"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/bangers"
-            android:textColor="@color/textColor"
-            android:gravity="center"
-            android:textSize="@dimen/text_size"
-            android:text="According to our suggestion, you are \n non depressed"/>
 
-        <ImageView
-            android:id="@+id/score_depict"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:src="@drawable/ic_mind_mapping"
-            android:layout_gravity="center"
-            android:contentDescription="@string/depression_score_daily" />
+            <TextView
+                android:id="@+id/depression_score"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bangers"
+                android:textColor="@color/textColor"
+                android:gravity="center"
+                android:textSize="@dimen/text_size"
+                tools:text="According to our suggestion, you are \n non depressed"/>
+
+            <ImageView
+                android:id="@+id/score_depict"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                tools:src="@drawable/ic_mind_mapping"
+                android:layout_gravity="center"
+                android:contentDescription="@string/depression_score_daily" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
     </RelativeLayout>
