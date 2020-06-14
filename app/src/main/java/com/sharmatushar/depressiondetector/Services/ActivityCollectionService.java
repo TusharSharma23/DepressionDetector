@@ -4,6 +4,9 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -11,6 +14,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.PersistableBundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -30,9 +35,12 @@ import java.util.Date;
 import java.util.Objects;
 
 import static com.sharmatushar.depressiondetector.App.CHANNEL_ID;
+import static com.sharmatushar.depressiondetector.Constants.PreferenceKeys.LOGIN_ID;
 
 public class ActivityCollectionService extends Service implements SensorEventListener {
-    private static final int COLLECTION_TIME = 60;
+    private final int DESTROY_TYPE = 3;
+    private final int COMPLETE_TYPE = 2;
+    private final String TAG = "Activity Collection";
 
     public ActivityCollectionService() {
     }
@@ -43,6 +51,7 @@ public class ActivityCollectionService extends Service implements SensorEventLis
     private long lastRecordedTime = 0;
     private boolean arraySwitch = true;
     private ArrayList<Double> list1, list2;
+
 
     @Nullable
     @Override
@@ -62,7 +71,7 @@ public class ActivityCollectionService extends Service implements SensorEventLis
                         .setContentText("Collecting your activity.")
                         .setContentIntent(pendingIntent)
                         .build();
-                Log.d("Tushar", "Service Started....");
+                Log.d(TAG, "Service Started....");
                 startForeground(1, notification);
                 sensorData = new ArrayList<>();
                 list1 = list2 = new ArrayList<>();
@@ -110,17 +119,18 @@ public class ActivityCollectionService extends Service implements SensorEventLis
             @SuppressLint("SimpleDateFormat") DateFormat simpleTime = new SimpleDateFormat("HH:mm:ss");
             Date date = new Date(currTime);
             double magnitude = Math.sqrt(x*x + y*y + z*z);
+            int COLLECTION_TIME = 60;
             if (arraySwitch) {
                 list1.add(magnitude);
                 if (list1.size() == COLLECTION_TIME) {
-                    Log.d("Tushar", "List 1");
+                    Log.d(TAG, "List 1");
                     arraySwitch = false;
                     calculateParams(simpleDate.format(date), simpleTime.format(date) ,list1);
                 }
             } else {
                 list2.add(magnitude);
                 if (list2.size() == COLLECTION_TIME) {
-                    Log.d("Tushar", "List 2");
+                    Log.d(TAG, "List 2");
                     arraySwitch = true;
                     calculateParams(simpleDate.format(currTime), simpleTime.format(date), list2);
                 }
@@ -147,7 +157,7 @@ public class ActivityCollectionService extends Service implements SensorEventLis
                         sum = 0;
                     }
                 }
-                Log.d("Tushar", "Size of mu: " + mu.size());
+                Log.d(TAG, "Size of mu: " + mu.size());
                 ArrayList<Double> sigma = new ArrayList<>();
                 for (int i = 0; i < list.size(); i++) {
                     sum += (list.get(i) - mu.get(i/5)) * (list.get(i) - mu.get(i/5));
@@ -156,27 +166,27 @@ public class ActivityCollectionService extends Service implements SensorEventLis
                         sum = 0;
                     }
                 }
-                Log.d("Tushar", "Size of mu: " + sigma.size());
+                Log.d(TAG, "Size of mu: " + sigma.size());
                 for (Double d:sigma) {
                     sum += d;
                 }
-                Log.d("Tushar", "Activity Index: " + sum);
+                Log.d(TAG, "Activity Index: " + sum);
                 sensorData.add(new UserData(date, time, sum));
                 list.clear();
                 String currTime = time.trim().substring(0, time.length()-3);
-                Log.d("Tushar", "Time now: " + currTime);
-                Log.d("Tushar", "SensorData length: " + sensorData.size());
+                Log.d(TAG, "Time now: " + currTime);
+                Log.d(TAG, "SensorData length: " + sensorData.size());
                 if (currTime.equals("23:59")) {
                     ArrayList<UserData> uploadData = new ArrayList<>(sensorData);
                     sensorData.clear();
-                    saveCSVFile(date, uploadData);
+                    saveCSVFile(date, uploadData, COMPLETE_TYPE);
                     //COMPLETED save to csv and upload data
                 }
             }
         }).start();
     }
 
-    private void saveCSVFile(String date,  ArrayList<UserData> uploadData) {
+    private void saveCSVFile(String date,  ArrayList<UserData> uploadData, int completeType) {
         String folderDirectory = Environment.getExternalStorageDirectory() + "/.DepressionDetector";
         String fileName = date + ".csv";
         File folder = new File(folderDirectory);
@@ -206,10 +216,58 @@ public class ActivityCollectionService extends Service implements SensorEventLis
                     outputStream.write("\n");
                 }
                 outputStream.close();
-                //TODO upload and delete csv here, create a job request
+                if (completeType == DESTROY_TYPE) {
+                    String[] filesInFolder = folder.list();
+                    assert filesInFolder != null;
+                    if (filesInFolder.length > 1) {
+                        for (String file:filesInFolder) {
+                            if (!file.equals(fileName)) {
+                                uploadFileAndDeleteFile(folderDirectory, file);
+                            }
+                        }
+                    }
+                } else if (completeType == COMPLETE_TYPE) {
+                    uploadFileAndDeleteFile(folderDirectory, fileName);
+                    String[] filesInFolder = folder.list();
+                    assert filesInFolder != null;
+                    if (filesInFolder.length > 1) {
+                        for (String file:filesInFolder) {
+                            if (!file.equals(fileName)) {
+                                uploadFileAndDeleteFile(folderDirectory, file);
+                            }
+                        }
+                    }
+                }
+                //COMPLETED upload and delete csv here, create a job request
             } catch (IOException e) {
                 e.printStackTrace();
             }
+    }
+
+    private void uploadFileAndDeleteFile(String folderDirectory, String fileName) {
+        ComponentName componentName = new ComponentName(this, UploadService.class);
+
+        PersistableBundle bundle = new PersistableBundle();
+        bundle.putString("login_id", PreferenceManager.getDefaultSharedPreferences(this).getString(LOGIN_ID, ""));
+        bundle.putString("file_name", fileName);
+        bundle.putString("file_path", folderDirectory + "/" + fileName);
+
+        int jobId = (int) (Math.random() * 100);
+        Log.d(TAG, "Creating job: " + jobId);
+
+        JobInfo jobInfo = new JobInfo.Builder(jobId, componentName)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPersisted(true)
+                .setExtras(bundle)
+                .build();
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(JOB_SCHEDULER_SERVICE);
+        assert jobScheduler != null;
+        int resultCode = jobScheduler.schedule(jobInfo);
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.d(TAG, "Scheduled job");
+        } else {
+            Log.d(TAG, "Failed to schedule Job");
+        }
     }
 
     /**
@@ -232,11 +290,11 @@ public class ActivityCollectionService extends Service implements SensorEventLis
     public void onDestroy() {
         super.onDestroy();
         ArrayList<UserData> uploadData = new ArrayList<>(sensorData);
-        Log.d("Tushar", "SensorData length: " + sensorData.size());
+        Log.d(TAG, "SensorData length: " + sensorData.size());
         if (!uploadData.isEmpty()) {
-            saveCSVFile(uploadData.get(uploadData.size() - 1).getDate(), uploadData);
+            saveCSVFile(uploadData.get(uploadData.size() - 1).getDate(), uploadData, DESTROY_TYPE);
         } else {
-            Log.d("Tushar", "SensorData empty");
+            Log.d(TAG, "SensorData empty");
         }
         //COMPLETED File Handling here.
     }

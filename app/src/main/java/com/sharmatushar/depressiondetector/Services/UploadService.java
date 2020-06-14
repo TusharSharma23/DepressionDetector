@@ -1,49 +1,106 @@
 package com.sharmatushar.depressiondetector.Services;
 
+import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.os.AsyncTask;
 import android.os.PersistableBundle;
+import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import static com.sharmatushar.depressiondetector.Constants.NetworkLinks.BASE_URL;
+import static com.sharmatushar.depressiondetector.Constants.NetworkLinks.UPLOAD_ACTIVITY;
 
 public class UploadService extends JobService {
     public UploadService() {
     }
 
-    /**
-     * Called to indicate that the job has begun executing.  Override this method with the
-     * logic for your job.  Like all other component lifecycle callbacks, this method executes
-     * on your application's main thread.
-     * <p>
-     * Return {@code true} from this method if your job needs to continue running.  If you
-     * do this, the job remains active until you call
-     * {@link #jobFinished(JobParameters, boolean)} to tell the system that it has completed
-     * its work, or until the job's required constraints are no longer satisfied.  For
-     * example, if the job was scheduled using
-     * {@link JobInfo.Builder#setRequiresCharging(boolean) setRequiresCharging(true)},
-     * it will be immediately halted by the system if the user unplugs the device from power,
-     * the job's {@link #onStopJob(JobParameters)} callback will be invoked, and the app
-     * will be expected to shut down all ongoing work connected with that job.
-     * <p>
-     * The system holds a wakelock on behalf of your app as long as your job is executing.
-     * This wakelock is acquired before this method is invoked, and is not released until either
-     * you call {@link #jobFinished(JobParameters, boolean)}, or after the system invokes
-     * {@link #onStopJob(JobParameters)} to notify your job that it is being shut down
-     * prematurely.
-     * <p>
-     * Returning {@code false} from this method means your job is already finished.  The
-     * system's wakelock for the job will be released, and {@link #onStopJob(JobParameters)}
-     * will not be invoked.
-     *
-     * @param params Parameters specifying info about this job, including the optional
-     *               extras configured with {@link JobInfo.Builder#setExtras(PersistableBundle).
-     *               This object serves to identify this specific running job instance when calling
-     *               {@link #jobFinished(JobParameters, boolean)}.
-     * @return {@code true} if your service will continue running, using a separate thread
-     * when appropriate.  {@code false} means that this job has completed its work.
-     */
     @Override
-    public boolean onStartJob(JobParameters params) {
-        return false;
+    @SuppressLint("StaticFieldLeak")
+    public boolean onStartJob(final JobParameters params) {
+        Log.d("Tushar", "Inside upload service...............");
+
+        new AsyncTask<Void, Void, JSONObject>() {
+
+            @Override
+            protected JSONObject doInBackground(Void... voids) {
+                PersistableBundle bundle = params.getExtras();
+                String fileName = bundle.getString("file_name");
+                String filePath = bundle.getString("file_path");
+                Log.d("Tushar", "Fetched file_name: " + fileName);
+                Log.d("Tushar", "Fetched file_path: " + filePath);
+                assert filePath != null;
+                File file = new File(filePath);
+
+                return sendCSVFile(bundle.getString("login_id"), fileName, file);
+            }
+
+            @Override
+            protected void onPostExecute(JSONObject jsonObject) {
+                super.onPostExecute(jsonObject);
+                Log.d("Tushar", "Server returned: " + jsonObject.toString());
+
+                PersistableBundle bundle = params.getExtras();
+                String filePath = bundle.getString("file_path");
+                assert filePath != null;
+                File file = new File(filePath);
+                boolean result = file.delete();
+                if (result) {
+                    Log.d("Tushar", "Deleted file: " + filePath);
+                } else {
+                    Log.d("Tushar", "Unable to delete file: " + filePath);
+                }
+
+                jobFinished(params, false);
+            }
+        }.execute();
+
+        return true;
+    }
+
+    private JSONObject sendCSVFile(String loginId, String fileName, File csvFile) {
+        OkHttpClient httpClient = new OkHttpClient();
+        Log.d("Tushar", "Created HttpClient");
+        String url = BASE_URL + UPLOAD_ACTIVITY;
+        Log.d("Tushar", "Calling url: " + url);
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("UserId", loginId)
+                .addFormDataPart("activity_file", fileName, RequestBody.create(MediaType.parse("file"), csvFile))
+                .build();
+        Log.d("Tushar", "Created request body");
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(requestBody)
+                .build();
+        Log.d("Tushar", "Created request.");
+
+        try {
+            Log.d("Tushar", "Creating response.");
+            Response response = httpClient.newCall(request).execute();
+            String responseString = Objects.requireNonNull(response.body()).string();
+            Log.d("Tushar", "Got Response: " + responseString);
+            return new JSONObject(responseString);
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
